@@ -112,15 +112,15 @@ Token bucket is eventually consistent in distributed setups; brief over-allow ca
 
 To cap damage, include a hard ceiling per request path (e.g., N per second per instance).
 
-Key Trade-offs
+**Key Trade-offs**
 
-Token Bucket vs Fixed Window: TB supports bursts up to capacity; Fixed Window is simpler but has boundary effects.
+**Token Bucket vs Fixed Window:** TB supports bursts up to capacity; Fixed Window is simpler but has boundary effects.
 
-In-proc vs Redis: In-proc is ultra-low latency but inconsistent across nodes; Redis adds a hop but keeps a global view.
+**In-proc vs Redis:** In-proc is ultra-low latency but inconsistent across nodes; Redis adds a hop but keeps a global view.
 
-Precision vs Cost: Floating-point tokens give smoothness but can add CPU; integer tokens are simpler.
+**Precision vs Cost:** Floating-point tokens give smoothness but can add CPU; integer tokens are simpler.
 
-Failure modes & mitigations
+**Failure modes & mitigations**
 
 Redis down / slow → default-deny or fail-open based on product risk; add circuit-breaker & fallback to in-proc emergency bucket.
 
@@ -130,7 +130,7 @@ Hot key DoS → per-IP + per-user layered policies; short local caches; backoff/
 
 Config mistakes → versioned policies with dry-run + metrics before enforce.
 
-Observability
+**Observability**
 
 Metrics:
 
@@ -144,14 +144,12 @@ Traces: span around allow() with policy/key attributes (redacted).
 
 Dashboards & alerts: spike in blocked_total, Redis latency > SLO.
 
-Security & privacy
+**Security & privacy**
 
 Avoid storing raw PII keys; hash keys (sha256) with a salt.
 
 Don’t log full keys; log prefixes or hashes.
 
-## Key Trade-offs
-- ...
 
 ## Bottlenecks & Future Work
 - ...
