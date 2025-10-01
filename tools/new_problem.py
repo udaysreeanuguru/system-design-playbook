@@ -1,3 +1,4 @@
+# ...existing code...
 import os, sys, textwrap, re, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -29,25 +30,27 @@ def main():
     content = TPL.replace("<TITLE>", title).replace("<slug>", slug)
     prob_md.write_text(content, encoding="utf-8")
 
-    # Write python skeleton
+    # Prepare python skeleton (avoid f-string triple-quote issues by using a template)
     sol_py.parent.mkdir(parents=True, exist_ok=True)
-    sol_py.write_text(textwrap.dedent(f\"\"\"
-        \"\"\"Prototype for {title} ({slug}). Replace with a minimal, testable demo.\"\"\"
+    sol_template = """\"\"\"Prototype for {title} ({slug}). Replace with a minimal, testable demo.\"\"\"
 
-        def todo():
-            return True
-    \"\"\").lstrip(), encoding="utf-8")
+def todo():
+    return True
+"""
+    sol_py.write_text(textwrap.dedent(sol_template).format(title=title, slug=slug).lstrip(), encoding="utf-8")
 
     # Write test skeleton
     test_py.parent.mkdir(parents=True, exist_ok=True)
-    test_py.write_text(textwrap.dedent(f\"\"\"
-        def test_placeholder():
-            from solutions.python.{slug.replace('-', '_')} import todo
-            assert todo() is True
-    \"\"\"), encoding="utf-8")
+    module_name = slug.replace('-', '_')
+    test_template = """def test_placeholder():
+    from solutions.python.{module} import todo
+    assert todo() is True
+"""
+    test_py.write_text(textwrap.dedent(test_template).format(module=module_name).lstrip(), encoding="utf-8")
 
     print(f"\nCreated:\n- {prob_md}\n- {sol_py}\n- {test_py}\n")
     print("Next:\n  pip install -r requirements.txt\n  pytest -q")
 
 if __name__ == "__main__":
     main()
+# ...existing code...
