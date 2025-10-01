@@ -36,9 +36,9 @@ Memory per key (Redis hash): ~60–120 bytes (tokens, last_refill, metadata).
 → 5M hot keys ≈ 0.5 GB to 1 GB; shard across nodes.
 
 ## High-Level Design
-Algorithm choice
+**Algorithm choice**
 
-Use Token Bucket (burst-friendly) as default; optionally support Leaky Bucket (smoother) or Fixed Window / Sliding Window for specific rules.
+Use Token Bucket (burst-friendly) as the default; optionally support Leaky Bucket (smoother) or Fixed Window / Sliding Window for specific rules.
 
 Token Bucket parameters:
 
@@ -52,15 +52,15 @@ Refill tokens: tokens = min(capacity, tokens + rate * (now - last_refill))
 
 If tokens >= 1, decrement and allow; else deny.
 
-Deployment models
+**Deployment models**
 
-In-process (fastest, simple)
+**In-process** (fastest, simplest)
 
-Per-instance memory; good for single node or when slight inconsistency across nodes is acceptable.
+Per-instance memory is good for a single node or when a slight inconsistency across nodes is acceptable.
 
 Add sticky routing or consistent hashing of keys to reduce cross-node skew.
 
-Centralized store (Redis/Memcached) (recommended)
+**Centralized store** (Redis/Memcached) (recommended)
 
 All app nodes call Redis using atomic ops (Lua or SET/GET with EVAL).
 
@@ -68,13 +68,13 @@ Pros: global view, consistent limits across nodes; simple to scale via sharding.
 
 Cons: extra network hop; need HA Redis.
 
-Sidecar/Service
+**Sidecar/Service**
 
 Dedicated “rate-limit service” with gRPC/HTTP; apps call it.
 
 Easier to evolve policies; cache results client-side for ultra-hot keys.
 
-Data model (Redis example)
+**Data model (Redis example)**
 
 Key: rl:{policy}:{key} → Hash fields:
 
@@ -84,7 +84,7 @@ TTL: optional (e.g., 24h) to auto-expire dormant keys.
 
 Atomic script (Lua) to refill + consume in one round-trip.
 
-API design
+**API design**
 
 Library (in-process):
 bool allow(key: str)
@@ -94,7 +94,7 @@ Service:
 POST /v1/allow { key, policy } → { allowed: bool, remaining_tokens, reset_in_ms }
 POST /v1/policies (admin) to add/update/delete rules.
 
-Scaling plan
+**Scaling plan**
 
 Sharding keys across Redis cluster by hash(key).
 
@@ -106,7 +106,7 @@ Per-region limits (eventual consistency across regions).
 
 Global limit via region-leader or CRDT counter (higher latency/complexity).
 
-Consistency & fairness
+**Consistency & fairness**
 
 Token bucket is eventually consistent in distributed setups; brief over-allow can happen during network partitions or clock skew.
 
